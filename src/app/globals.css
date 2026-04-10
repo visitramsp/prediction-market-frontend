@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+@theme {
+  /* This creates the 'font-poppins' utility class automatically */
+  --font-poppins: var(--font-poppins), sans-serif;
+
+  /* If you want Poppins to be the default 'font-sans' */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+/* ===============================
+   THEME VARIABLES
+================================ */
+
+/* ---------- LIGHT THEME ---------- */
+:root {
+  /* Backgrounds */
+  --color-bglight: #ffffff;
+  --color-background: #ffffff;
+  --boxbg2: #ffffff;
+  --boxbg1: #090912;
+
+  /* Text */
+  --color-text: #383c44;
+  --color-muted: #6b7280;
+  --color-primary: #191919;
+  --color-secondary: #ec4899;
+
+  /* Borders */
+  --color-borderlight: #e5e7eb;
+  --color-boxborder: #e1e1e1;
+
+  /* UI */
+  --color-primary-hover: #6d28d9;
+  --color-hovertext: #a884e0;
+  --color-btnbg: #7a48df;
+  --color-borderdark: #cecfd1;
+}
+
+/* ---------- DARK THEME ---------- */
+.dark {
+  /* Backgrounds */
+  --color-bgdark: #030305;
+  --color-background: #030305;
+  --color-boxbg1: #090912;
+
+  /* Text */
+  --color-text: #e4e4e4;
+  --color-muted: #717479;
+  --color-primary: #f1f1f1;
+  --color-secondary: #f472b6;
+
+  /* Borders */
+  --color-borderdark: #29334b;
+  --color-boxborder: #2b2b2c;
+
+  /* UI */
+  --color-primary-hover: #c4b5fd;
+  --color-hovertext: #a085ca;
+  --color-btnbg: #7a48df;
+}
+
+/* ===============================
+   BASE STYLES
+================================ */
+
+body {
+  height: auto;
+  overflow: auto;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-poppins), var(--font-roboto), system-ui, sans-serif;
+}
+
+/* ===============================
+   TAILWIND DARK VARIANT
+================================ */
+@variant dark (&:where(.dark, .dark *));
+
+/* ===============================
+   UTILITIES
+================================ */
+@layer utilities {
+  /* Hide scrollbar but keep scroll */
+  .hideScrollbar {
+    overflow-y: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  .hideScrollbar:hover {
+    overflow-y: auto;
+  }
+
+  .hideScrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  /* Light mode scrollbar */
+  .hideScrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+  }
+
+  /* Dark mode scrollbar */
+  .dark .hideScrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .hideScrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .hideScrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+  }
+
+  .dark .hideScrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* Remove number input arrows */
+  .no-arrow::-webkit-inner-spin-button,
+  .no-arrow::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .no-arrow {
+    -moz-appearance: textfield;
+  }
+
+  /* Fully hide scrollbar */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ===============================
+   MISC FIXES
+================================ */
+.css-19kzrtu {
+  padding: 0 !important;
+}
+.css-8atqhb {
+  width: 100%;
+  z-index: -51;
+  position: relative;
+}
+
+.google-btn-wrapper {
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  border-radius: 5px; /* same as Apple button */
+}
+
+.google-btn-wrapper > div {
+  width: 100% !important;
+}
+
+.google-btn-wrapper iframe {
+  width: 100% !important;
+  height: 52px !important; /* match Apple button height */
+}
+
+.google-btn-wrapper .haAclf {
+  width: 100% !important;
+  display: block !important;
+}
+
+/* .haAclf {
+  display: block !important;
+  width: 100% !important;
+} */
+
+/* textarea {
+  font: inherit;
+} */
+
+.globalFonts {
+  font-family: var(--font-poppins), sans-serif;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
