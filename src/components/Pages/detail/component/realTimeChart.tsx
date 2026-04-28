@@ -1,12 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import { useTheme } from "next-themes";
 import { BASE_COLORS, prepareSeries } from "@/utils/Content";
 import { RawSeries } from "@/utils/typesInterface";
-
+import { AiOutlineFullscreen } from "react-icons/ai";
 const ApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface StackedAreaChartProps {
@@ -126,11 +126,39 @@ const StackedAreaChart = ({
 
   const timeInterval = ["5m", "15m", "30m", "1h", "24h", "7d", "all"];
 
+  const containerRef = useRef(null);
+
+  const handleFullscreen = () => {
+    const el = containerRef.current;
+
+    if (!document.fullscreenElement) {
+      el.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  useEffect(() => {
+    const handleEsc = () => {
+      if (!document.fullscreenElement) {
+        // you can add state reset here if needed
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleEsc);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleEsc);
+    };
+  }, []);
+
   return (
-    <div className="w-full flex flex-col relative sm:mx-0">
+    <div ref={containerRef} className="w-full flex flex-col relative sm:mx-0">
       {/* Filters Area */}
-      <div className="flex justify-end mb-4">
-        <div className="flex items-center gap-1 dark:bg-[#111A22] bg-gray-200 rounded-lg px-1 py-1">
+      <div className="flex justify-between mb-4">
+        <div onClick={handleFullscreen}>
+          <AiOutlineFullscreen />
+        </div>
+        <div className="flex items-center gap-1 dark:bg-[#17172E] bg-gray-200 rounded-lg px-1 py-1">
           {timeInterval.map((item) => (
             <button
               key={item}
@@ -139,7 +167,7 @@ const StackedAreaChart = ({
                 px-3 py-1 text-xs font-medium rounded-md transition-all
                 ${
                   item === timeIntervalValue
-                    ? "dark:bg-[#1D293D] bg-white dark:text-white text-black shadow-sm"
+                    ? "dark:bg-[#0f0f1a] bg-white dark:text-white text-black shadow-sm"
                     : "dark:text-gray-400 text-gray-600 hover:text-white cursor-pointer"
                 }
               `}

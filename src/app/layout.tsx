@@ -6,6 +6,15 @@ import { Toaster } from "react-hot-toast";
 import SocketProvider from "@/components/socket/SocketProvider";
 import TradingLayout from "@/components/TradingLayout";
 import E2EProvider from "@/components/Pages/Messages/crypto/E2EProvider";
+
+// wallet connection start
+import "@rainbow-me/rainbowkit/styles.css";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { WagmiProvider } from "wagmi";
+import { mainnet, polygon, optimism, arbitrum, base } from "wagmi/chains";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import Web3Provider from "./Web3Provider";
+// wallet connection end
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -37,18 +46,59 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="globalFonts">
-        <ReduxProvider>
-          <SocketProvider>
-            <ThemeProvider attribute="class" defaultTheme="system">
-              <E2EProvider>
-                <TradingLayout>
-                  <Toaster position="bottom-center" />
-                  {children}
-                </TradingLayout>
-              </E2EProvider>
-            </ThemeProvider>
-          </SocketProvider>
-        </ReduxProvider>
+        <Web3Provider>
+          <ReduxProvider>
+            <SocketProvider>
+              <ThemeProvider attribute="class" defaultTheme="system">
+                <E2EProvider>
+                  <TradingLayout>
+                    <Toaster
+                      position="bottom-center"
+                      containerStyle={{
+                        zIndex: 999999999, // super high
+                        pointerEvents: "none", // optional (click-through)
+                      }}
+                      toastOptions={{
+                        duration: 4000,
+
+                        style: {
+                          // Using the CSS variables we defined
+                          background: "var(--toast-bg)",
+                          color: "var(--toast-color)",
+                          border: "1px solid var(--toast-border)",
+
+                          // The Premium "Feel"
+                          backdropFilter: "blur(12px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(12px) saturate(180%)", // Safari support
+                          padding: "12px 20px",
+                          borderRadius: "14px",
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          letterSpacing: "-0.01em",
+                          boxShadow:
+                            "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                        },
+                        success: {
+                          iconTheme: {
+                            primary: "#10b981",
+                            secondary: "var(--toast-bg)", // Makes the checkmark "see through" to the glass
+                          },
+                        },
+                        error: {
+                          iconTheme: {
+                            primary: "#ff4b4b",
+                            secondary: "var(--toast-bg)",
+                          },
+                        },
+                      }}
+                    />
+                    {children}
+                  </TradingLayout>
+                </E2EProvider>
+              </ThemeProvider>
+            </SocketProvider>
+          </ReduxProvider>
+        </Web3Provider>
       </body>
     </html>
   );

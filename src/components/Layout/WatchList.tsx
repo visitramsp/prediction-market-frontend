@@ -68,7 +68,7 @@ export default function WatchList() {
   const locations = location.pathname;
 
   return (
-    <div className="h-full  bg-white dark:bg-[#0F172A]">
+    <div className="h-full  ">
       {/* Positions Section */}
       <div
         className={`p-4 ${locations == "/watchlist/" ? "mt-24 " : ""} border-b border-gray-100 dark:border-gray-800`}

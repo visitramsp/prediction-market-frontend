@@ -38,6 +38,10 @@ import { MdOutlineMenuOpen } from "react-icons/md";
 import { ListIndentDecrease } from "lucide-react";
 import { ListIndentIncrease } from "lucide-react";
 import { FcMindMap } from "react-icons/fc";
+import LogoutModal from "@/components/Modal/LogoutModal";
+import { WalletConnection } from "../WalletConnection";
+import { UseAppSeletor } from "@/components/store/store";
+
 interface Category {
   id: number;
   name: string;
@@ -74,6 +78,8 @@ const Header = ({ isPosition, setPosition }) => {
   const [status, setStatus] = useState("Active");
   const [sortBy, setSortBy] = useState("newest");
   const [isHovered, setIsHovered] = useState(false);
+  // logout asking for sure or not
+  const [isLogout, setIsLogout] = useState(false);
 
   const [hideFilter, setHideFilter] = useState({
     sports: false,
@@ -94,7 +100,9 @@ const Header = ({ isPosition, setPosition }) => {
   }, []);
 
   const getToken = localStorage.getItem("token");
-  const user = useSelector((state: headerRootState) => state?.user);
+  // const user = useSelector((state: headerRootState) => state?.user);
+  const user = UseAppSeletor((state) => state.user);
+
   const unreadCount = useSelector(
     (state: headerRootState & { chat?: { unreadCount: number } }) =>
       state?.chat?.unreadCount ?? 0,
@@ -256,7 +264,8 @@ const Header = ({ isPosition, setPosition }) => {
       {/* <div className="hidden lg:block"> */}
       <div className="fixed top-0 left-0 z-[99]  w-full    ">
         <header
-          className=" border-b dark:border-[#111A22] bg-[var(--color-bglight)] dark:bg-[var(--color-bgdark)] border-gray-300 
+          className=" border-b  border-[var(--color-borderlight)]
+                        dark:border-[var(--color-borderdark)] bg-[var(--color-bglight)] dark:bg-[var(--color-bgdark)] border-gray-300 
 
   pb-0  "
         >
@@ -282,7 +291,7 @@ const Header = ({ isPosition, setPosition }) => {
 
                     {/* Text: Compact & Clean */}
                     <p className="flex flex-col leading-none font-poppins">
-                      <span className="text-[14px] font-bold tracking-[0.2em] text-white uppercase">
+                      <span className="text-[16px] font-bold tracking-[0.2em] text-black dark:text-white uppercase">
                         Prediction
                       </span>
                       <span className="text-[12px] font-medium tracking-[0.1em] text-[#8160ee]/80">
@@ -363,7 +372,7 @@ const Header = ({ isPosition, setPosition }) => {
                   </div>
                 )} */}
 
-                {user?.isAuth && (
+                {/* {user?.isAuth && (
                   <button
                     className="md:inline-block hidden
     group relative globalFonts
@@ -379,7 +388,8 @@ const Header = ({ isPosition, setPosition }) => {
                   >
                     Deposit
                   </button>
-                )}
+                )} */}
+                {/* <WalletConnection /> */}
 
                 {user?.isAuth && (
                   <button
@@ -399,7 +409,7 @@ const Header = ({ isPosition, setPosition }) => {
                 {!user?.isAuth && (
                   <div className="relative group inline-block">
                     {/* 1. Main Get Started Button */}
-                    <button className="flex items-center gap-2 px-5 py-1.5 text-sm bg-[#8160ee] text-white rounded-md font-poppins font-semibold transition-all duration-300">
+                    <button className="flex text-nowrap items-center gap-2 px-5 py-2 text-sm bg-[#8160ee] text-white rounded-md font-poppins font-semibold transition-all duration-300">
                       Get Started
                       <ChevronDown
                         size={18}
@@ -609,6 +619,8 @@ const Header = ({ isPosition, setPosition }) => {
         isOpen={isOpen}
         handleClose={() => setIsOpen(false)}
       />
+
+      {/* <LogoutModal isOpen={isLogout} onClose={()=>setIsLogout(false)} onConfirm={} /> */}
     </>
   );
 };

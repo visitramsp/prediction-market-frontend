@@ -1,7 +1,7 @@
 import CustomInput from "@/components/common/CustomInput";
 import { registerAPI } from "@/components/service/auth";
 import { useFormik } from "formik";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { FaMapMarkedAlt, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
@@ -19,7 +19,7 @@ import {
   getStates,
 } from "@/components/service/apiService/globalApi";
 import { isValidEmail } from "@/utils/Content";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 const RegisterSchema = Yup.object().shape({
   userName: Yup.string()
@@ -35,20 +35,33 @@ const RegisterSchema = Yup.object().shape({
   country: Yup.string().required("Country is required"),
   state: Yup.string().required("State is required"),
   city: Yup.string().required("City is required"),
-  referral: Yup.string().optional(),
+  referralId: Yup.string().optional(),
+  checkRef: Yup.boolean(),
+  referral: Yup.string().when("referralId", {
+    is: (val: string) => val && val.length > 0,
+    then: (schema) => schema.required("Valid referral is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
+  address: Yup.string()
+    .required("Please select your location on map")
+    .min(5, "Please select proper location"),
 });
 
 export default function Register({ ref }: { ref: string }) {
   const [isLoader, setIsLoader] = useState(false);
   const [show, setShow] = useState(false);
-  const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(
-    null,
-  );
-  const [isMapOpen, setIsMapOpen] = useState(false);
 
+  const [locationError, setLocationError] = useState("");
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const params = useParams();
   const [countryData, setCountryData] = useState<any[]>([]);
   const [statesData, setStatesData] = useState<any[]>([]);
   const [citiesData, setCitiesData] = useState<any[]>([]);
+  const [referralError, setReferralError] = useState<string>("");
+  const [isCheckingReferral, setIsCheckingReferral] = useState(false);
+
+  // Debounce Timer
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const formik = useFormik({
     initialValues: {
@@ -62,6 +75,7 @@ export default function Register({ ref }: { ref: string }) {
       longitude: "",
       address: "",
       checkRef: false,
+      referralId: params?.slug || "",
     },
     validationSchema: RegisterSchema,
     onSubmit: async (values) => {
@@ -76,10 +90,16 @@ export default function Register({ ref }: { ref: string }) {
         lng: values.longitude,
       };
 
+      if (values.referralId && !values.checkRef) {
+        toast.error("Please enter a valid referral code");
+        setReferralError("Invalid Referral Code"); // Show red message
+        return; // ← STOP API CALL
+      }
       setIsLoader(true);
       try {
         const response = await registerAPI(reqBody);
         if (response?.success) {
+          router.push("/");
           toast.success(response.message);
           formik.resetForm();
         } else {
@@ -92,6 +112,8 @@ export default function Register({ ref }: { ref: string }) {
       }
     },
   });
+
+  console.log(params, "params");
 
   // Detect Email or Phone
   useEffect(() => {
@@ -152,36 +174,86 @@ export default function Register({ ref }: { ref: string }) {
     fetchCities();
   }, [formik.values.state]);
 
-  // Auto Referral (Example)
-  useEffect(() => {
-    const fetchResponserData = async () => {
-      try {
-        const res = await getResponser({ sponsor_id: "USR_1775716915079" });
-        if (res?.success) {
-          formik.setFieldValue("referral", res.data?.id || "");
-          formik.setFieldValue("checkRef", true);
-        } else {
-          formik.setFieldValue("checkRef", false);
-        }
-      } catch (err) {}
-    };
-    fetchResponserData();
-  }, []);
-
   const handleLocationSelect = (data: {
     lat: number;
     lng: number;
     address: string;
   }) => {
-    setLatLng({ lat: data.lat, lng: data.lng });
+    formik.setFieldValue("latitude", data.lat.toString());
+    formik.setFieldValue("longitude", data.lng.toString());
+    formik.setFieldValue("address", data.address); // ← Main field
 
-    formik.setFieldValue("latitude", data.lat);
-    formik.setFieldValue("longitude", data.lng);
-    formik.setFieldValue("address", data.address); // ← Auto set address
+    setLocationError("");
+    formik.setFieldTouched("address", true);
   };
 
   console.log(formik.values, "addressssss");
 
+  const checkReferral = useCallback(
+    async (refId: string) => {
+      if (!refId || refId.length < 3) {
+        setReferralError("");
+        formik.setFieldValue("referral", "");
+        formik.setFieldValue("checkRef", false);
+        return;
+      }
+
+      setIsCheckingReferral(true);
+      setReferralError("");
+
+      try {
+        const res = await getResponser({ sponsor_id: refId });
+
+        if (res?.success && res.data?.id) {
+          formik.setFieldValue("referral", res.data.id);
+          formik.setFieldValue("checkRef", true);
+          setReferralError("");
+        } else {
+          formik.setFieldValue("referral", "");
+          formik.setFieldValue("checkRef", false);
+          setReferralError("Invalid Referral Code");
+        }
+      } catch (err) {
+        formik.setFieldValue("referral", "");
+        formik.setFieldValue("checkRef", false);
+        setReferralError("Invalid Referral Code");
+      } finally {
+        setIsCheckingReferral(false);
+      }
+    },
+    [formik],
+  );
+
+  // Handle Input Change + Debounce
+  const handleReferralChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    formik.handleChange(e); // Update formik value
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    // Set new debounce timer
+    debounceTimer.current = setTimeout(() => {
+      checkReferral(value.trim());
+    }, 600); // 600ms delay after user stops typing
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
+
+  // Auto-check when coming from URL params (only once)
+  useEffect(() => {
+    if (params?.slug) {
+      formik.setFieldValue("referralId", params.slug);
+      checkReferral(params.slug as string);
+    }
+  }, [params?.slug]);
   return (
     <div className="min-h-screen bg-[#0A0F1C] flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
@@ -207,22 +279,38 @@ export default function Register({ ref }: { ref: string }) {
 
           <form onSubmit={formik.handleSubmit} className="space-y-6">
             {/* Map Location Button */}
-            <div className="space-y-1">
+            {/* Mandatory Location Selection */}
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={() => setIsMapOpen(true)}
-                className="w-full py-4 px-5 bg-[#1A233D] hover:bg-[#1F2A4A] border border-[#2A3A5F] rounded-2xl flex items-center justify-center gap-3 text-white font-medium transition-all"
+                className={`w-full py-4 px-5 border rounded-2xl flex items-center justify-center gap-3 font-medium transition-all ${
+                  formik.values.address
+                    ? "bg-emerald-900/30 border-emerald-500 text-emerald-400"
+                    : "bg-[#1A233D]  hover:bg-[#1F2A4A] border-[#2A3A5F] text-white"
+                }`}
               >
                 <FaMapMarkedAlt size={22} className="text-purple-400" />
-                Select Your Location on Map
+                {formik.values.address
+                  ? "✓ Location Selected"
+                  : "Select Your Location on Map *"}
               </button>
 
-              {latLng && (
-                <div className="text-emerald-400 text-sm">
-                  <span className="text-white ">Selected:</span>{" "}
-                  {formik.values.address || ""}
+              {/* Selected Address Display */}
+              {formik.values.address && (
+                <div className="text-emerald-400 text-sm pl-2 flex items-start gap-2">
+                  📍{" "}
+                  <span className="line-clamp-2">{formik.values.address}</span>
                 </div>
               )}
+
+              {/* Error Message */}
+              {(formik.touched.address || locationError) &&
+                formik.errors.address && (
+                  <p className="text-red-500 text-sm pl-2">
+                    {formik.errors.address}
+                  </p>
+                )}
             </div>
 
             {/* Email/Phone */}
@@ -305,17 +393,34 @@ export default function Register({ ref }: { ref: string }) {
               </div>
             </div>
 
-            {/* Referral Code */}
-            <CustomInput
-              placeholder="Referral Code (Optional)"
-              name="referral"
-              value={formik.values.referral}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              startIcon={<FiLogOut size={20} className="text-slate-400" />}
-              // className="bg-[#1A233D] border border-[#2A3A5F] focus:border-purple-500 text-white placeholder:text-slate-500"
-            />
+            <div>
+              {/* Referral Code */}
+              <CustomInput
+                placeholder="Referral Code (Optional)"
+                name="referralId"
+                value={formik.values.referralId}
+                onChange={handleReferralChange} // ← Changed
+                onBlur={formik.handleBlur}
+                startIcon={<FiLogOut size={20} className="text-slate-400" />}
+              />
 
+              {/* Referral Status */}
+              {isCheckingReferral && (
+                <p className="text-sm text-blue-400 mt-1 flex items-center gap-2">
+                  <CircularProgress size={14} /> Checking referral...
+                </p>
+              )}
+
+              {referralError && (
+                <p className="text-sm text-red-500 mt-1">{referralError}</p>
+              )}
+
+              {formik.values.checkRef && !referralError && (
+                <p className="text-sm text-emerald-500 mt-1">
+                  ✓ Valid referral code applied
+                </p>
+              )}
+            </div>
             {/* Submit Button */}
             <button
               type="submit"

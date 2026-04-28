@@ -183,6 +183,8 @@ export default function NotificationBell({ userId }) {
     socket.emit(`subscribe:userNotification`, userId);
     const handleNotification = (payload: any) => {
       toast.success(payload?.message || "");
+      console.log(payload, "payload");
+
       setCountNotification((prev: number) => prev + 1);
     };
 
@@ -208,8 +210,8 @@ export default function NotificationBell({ userId }) {
       <div
         className={`
           absolute lg:right-0 -right-16 mt-3 w-72
-          bg-white dark:bg-[#1D293D]
-          rounded-xl shadow-lg border dark:border-gray-800 border-gray-300
+          bg-white dark:bg-[#0a0e14]
+          rounded shadow-lg border dark:border-gray-800 border-gray-300
           transition-all duration-200 ease-out
           z-50
           ${

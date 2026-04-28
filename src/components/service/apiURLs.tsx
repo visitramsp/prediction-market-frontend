@@ -72,4 +72,9 @@ export const API_URLs = {
   statesList: "/g/states",
   citiesList: "/g/cities",
   getResponser: "/user/get_sponser",
+  userAddBalance: "user/add-balance",
+  userUpdateBalance: "user/update-add-balance",
+  userAddBalanceWithQr: "user/add-balance-with-qr",
+  topTenUser: "user/top-ten-user",
+  categoryWithQuestions: "user/categories-with-question",
 };

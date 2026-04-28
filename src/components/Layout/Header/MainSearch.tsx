@@ -114,13 +114,13 @@ export default function MainSearch() {
         value={query}
         onFocus={() => setOpen(true)}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Trade on anything"
-        className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 text-sm focus:outline-none"
+        placeholder="Trade on anything..."
+        className="w-full pl-10 pr-4 py-2 rounded-full dark:placeholder:text-gray-300 bg-gray-100 dark:bg-[#17172e] text-sm focus:outline-none"
       />
 
       {/* DROPDOWN */}
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-full bg-white dark:bg-[#1D293D] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50">
+        <div className="absolute left-0 top-full mt-2 w-full bg-white dark:bg-[#17112c] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50">
           {/* TABS */}
           {getToken && (
             <div className="flex border-b border-gray-400 dark:border-gray-700">

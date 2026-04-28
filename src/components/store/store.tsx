@@ -8,6 +8,8 @@ import categorySlice from "./slice/category";
 import watchListSlice from "./slice/watchList";
 import reelsSlice from "./slice/reels";
 import chatSlice from "./slice/chat";
+import { useSelector } from "react-redux";
+import type { TypedUseSelectorHook } from "react-redux";
 
 const rootReducer = combineReducers({
   user: authSlice,
@@ -37,3 +39,5 @@ export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export const UseAppSeletor: TypedUseSelectorHook<RootState> = useSelector;

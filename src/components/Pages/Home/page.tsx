@@ -41,6 +41,8 @@ import {
 import { distance } from "framer-motion";
 import { useSidebar } from "@/components/TradingLayout";
 import SubCategory from "../subCategory/page";
+import HeroSection from "./HeroSection";
+import CardSection from "./CardSection";
 
 interface selectedSubCategory {
   category: {
@@ -296,6 +298,8 @@ const Home = () => {
 
   const questionListFilter = questionData;
 
+  console.log(categoryDetails?.id, "categoryDetails");
+
   return (
     <>
       <div
@@ -309,6 +313,14 @@ const Home = () => {
                 : "pt-8 sm:pt-10 md:pt-5 lg:pt-16 "
         }`}
       >
+        <div className="pb-10">
+          {!loader && <HeroSection />}
+          {isEvent
+            ? null
+            : loader
+              ? null
+              : categoryDetails?.id == 1 && <CardSection />}
+        </div>
         <div
           className={`grid  grid-cols-1 ${isEvent ? "grid-cols-1" : isSidebarOpen ? "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}  gap-4 pt-10 lg:pt-0`}
         >
@@ -323,11 +335,13 @@ const Home = () => {
               setIsOpen={setIsOpen}
               loader={loader}
             />
-          ) : loader ? (
+          ) : // ) : true ? (
+          loader ? (
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]?.map((row) => (
               <LoadingCard key={row} />
             ))
-          ) : questionListFilter && questionListFilter.length > 0 ? (
+          ) : categoryDetails?.id == 1 ? null : questionListFilter &&
+            questionListFilter.length > 0 ? (
             questionListFilter?.map((row: QuestionItem, index) => {
               const metaData = (() => {
                 if (!row?.metadata) return null;
@@ -349,7 +363,7 @@ const Home = () => {
                   key={index}
                   className="border relative border-[var(--color-borderlight)]
                         dark:border-[var(--color-borderdark)]
-                        bg-[var(--boxbg2)] dark:bg-[var(--boxbg1)]
+                        bg-[var(--boxbg2)]/40 dark:bg-[var(--boxbg1)]/70
                         relative rounded-xl px-4 py-2
                         transform transition-all duration-300 ease-in-out
                         hover:scale-106 hover:shadow-md

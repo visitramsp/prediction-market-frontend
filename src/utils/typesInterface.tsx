@@ -27,6 +27,7 @@ export interface UserProfileData {
     currentValue: number;
     totalPnL: number;
   };
+  wallet: { balance: string; tokenBalance: string };
 }
 
 export interface UserBalanceData {
@@ -373,7 +374,6 @@ export interface ReelCreator {
     [key: string]: unknown;
   };
 }
-
 
 export interface LinkedQuestion {
   id: number;

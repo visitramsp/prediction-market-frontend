@@ -383,3 +383,68 @@ export const getFollowing = async (userId = 1, limit = 10, offset = 0) => {
 };
 
 // logout
+
+export const addUserBalance = async (reqBody: unknown) => {
+  try {
+    const response = await apiInstance.post(API_URLs.userAddBalance, reqBody);
+    return response?.data;
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: getErrorMessage(error),
+    };
+  }
+};
+
+export const updateUserBalance = async (reqBody: unknown) => {
+  try {
+    const response = await apiInstance.post(
+      API_URLs.userUpdateBalance,
+      reqBody,
+    );
+    return response?.data;
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: getErrorMessage(error),
+    };
+  }
+};
+
+export const userAddBalanceWithQr = async (reqBody: unknown) => {
+  try {
+    const response = await apiInstance.post(
+      API_URLs.userAddBalanceWithQr,
+      reqBody,
+    );
+    return response?.data;
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: getErrorMessage(error),
+    };
+  }
+};
+
+export const fetchTopTenQuestions = async () => {
+  try {
+    const response = await apiInstance.get(API_URLs.topTenUser);
+    return response?.data;
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: getErrorMessage(error),
+    };
+  }
+};
+export const fetchCategoryWithQuestions = async () => {
+  try {
+    const response = await apiInstance.get(API_URLs.categoryWithQuestions);
+    return response?.data;
+  } catch (error: unknown) {
+    return {
+      success: false,
+      message: getErrorMessage(error),
+    };
+  }
+};

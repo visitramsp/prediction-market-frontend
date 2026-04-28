@@ -80,7 +80,9 @@ const ReelsPage = () => {
   >([]);
 
   // Buy/sell state
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(
+    null,
+  );
   const [buySellOpen, setBuySellOpen] = useState(false);
   const [buySellOrderType, setBuySellOrderType] = useState<string>("buy");
   const [loginOpen, setLoginOpen] = useState(false);
@@ -129,13 +131,15 @@ const ReelsPage = () => {
             id: Number(o.id),
             name: String(o.name || ""),
             price: Number(o.price || 0),
-          }))
+          })),
         );
       } else {
         setMarketOptions([]);
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [currentReel?.linkedQuestion?.id]);
 
   useEffect(() => {
@@ -208,7 +212,13 @@ const ReelsPage = () => {
     setTimeout(() => setLikeBounce(false), 500);
     const res = await toggleReelLike(currentReel.id);
     if (res?.success) {
-      dispatch(updateReelLike({ reelId: currentReel.id, liked: res.data.isLiked, likeCount: res.data.likeCount }));
+      dispatch(
+        updateReelLike({
+          reelId: currentReel.id,
+          liked: res.data.isLiked,
+          likeCount: res.data.likeCount,
+        }),
+      );
     }
   };
 
@@ -217,7 +227,13 @@ const ReelsPage = () => {
     if (!isAuth) return toast.error("Login to bookmark");
     const res = await toggleReelBookmark(currentReel.id);
     if (res?.success) {
-      dispatch(updateReelBookmark({ reelId: currentReel.id, bookmarked: res.data.isBookmarked, bookmarkCount: res.data.bookmarkCount }));
+      dispatch(
+        updateReelBookmark({
+          reelId: currentReel.id,
+          bookmarked: res.data.isBookmarked,
+          bookmarkCount: res.data.bookmarkCount,
+        }),
+      );
     }
   };
 
@@ -226,9 +242,16 @@ const ReelsPage = () => {
     const shareUrl = `${window.location.origin}/reels?id=${currentReel.id}`;
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title: currentReel.caption || "Check out this reel!", url: shareUrl });
-      } catch { copyToClipboard(shareUrl); }
-    } else { copyToClipboard(shareUrl); }
+        await navigator.share({
+          title: currentReel.caption || "Check out this reel!",
+          url: shareUrl,
+        });
+      } catch {
+        copyToClipboard(shareUrl);
+      }
+    } else {
+      copyToClipboard(shareUrl);
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -261,8 +284,12 @@ const ReelsPage = () => {
   };
 
   const handleBuySell = (index: number, type: string) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!token) { setLoginOpen(true); return; }
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      setLoginOpen(true);
+      return;
+    }
     setSelectedOptionIndex(index);
     setBuySellOrderType(type);
     setBuySellOpen(true);
@@ -271,14 +298,27 @@ const ReelsPage = () => {
   const buySellRowDetails = currentReel?.linkedQuestion
     ? {
         id: currentReel.linkedQuestion.id,
-        question: { question: currentReel.linkedQuestion.question, id: currentReel.linkedQuestion.id },
-        options: marketOptions.map((o) => ({ id: o.id, name: o.name, price: o.price, winningProbability: o.price })),
+        question: {
+          question: currentReel.linkedQuestion.question,
+          id: currentReel.linkedQuestion.id,
+        },
+        options: marketOptions.map((o) => ({
+          id: o.id,
+          name: o.name,
+          price: o.price,
+          winningProbability: o.price,
+        })),
       }
     : null;
 
   const buySellOption =
     selectedOptionIndex !== null && marketOptions[selectedOptionIndex]
-      ? { id: marketOptions[selectedOptionIndex].id, name: marketOptions[selectedOptionIndex].name, price: marketOptions[selectedOptionIndex].price, winningProbability: marketOptions[selectedOptionIndex].price }
+      ? {
+          id: marketOptions[selectedOptionIndex].id,
+          name: marketOptions[selectedOptionIndex].name,
+          price: marketOptions[selectedOptionIndex].price,
+          winningProbability: marketOptions[selectedOptionIndex].price,
+        }
       : null;
 
   // ── Left panel (rendered as JSX, NOT as <Component />) ──
@@ -291,14 +331,16 @@ const ReelsPage = () => {
           <div
             className="bg-white dark:bg-[#1a1f2e] rounded-2xl border border-gray-200/80 dark:border-gray-700/50 p-4 space-y-3 flex-shrink-0"
             style={{
-              boxShadow: "0 4px 6px rgba(0,0,0,0.07), 0 10px 30px rgba(129,96,238,0.08), inset 0 1px 0 rgba(255,255,255,0.1)",
+              boxShadow:
+                "0 4px 6px rgba(0,0,0,0.07), 0 10px 30px rgba(129,96,238,0.08), inset 0 1px 0 rgba(255,255,255,0.1)",
             }}
           >
             <div className="flex items-center gap-3">
               <div
                 className="w-10 h-10 bg-gradient-to-br from-[#8160EE] to-[#6235f8] rounded-xl flex items-center justify-center"
                 style={{
-                  boxShadow: "0 6px 16px rgba(129,96,238,0.35), 0 2px 4px rgba(0,0,0,0.1)",
+                  boxShadow:
+                    "0 6px 16px rgba(129,96,238,0.35), 0 2px 4px rgba(0,0,0,0.1)",
                 }}
               >
                 <MdQuiz className="text-white text-lg" />
@@ -308,8 +350,11 @@ const ReelsPage = () => {
                   Linked Market
                 </p>
                 <p className="text-[11px] text-gray-400 mt-0.5">
-                  {linkedQ.status === "active" || linkedQ.status === "OPEN" ? "Active" : linkedQ.status}
-                  {linkedQ.endDate && ` · Ends ${new Date(linkedQ.endDate).toLocaleDateString()}`}
+                  {linkedQ.status === "active" || linkedQ.status === "OPEN"
+                    ? "Active"
+                    : linkedQ.status}
+                  {linkedQ.endDate &&
+                    ` · Ends ${new Date(linkedQ.endDate).toLocaleDateString()}`}
                 </p>
               </div>
             </div>
@@ -337,9 +382,10 @@ const ReelsPage = () => {
                           : "bg-gray-50 dark:bg-[#0f1520] hover:bg-gray-100 dark:hover:bg-[#151c2e]"
                       }`}
                       style={{
-                        boxShadow: selectedOptionIndex === idx
-                          ? "0 4px 15px rgba(129,96,238,0.2), inset 0 1px 0 rgba(255,255,255,0.05)"
-                          : "0 1px 3px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.03)",
+                        boxShadow:
+                          selectedOptionIndex === idx
+                            ? "0 4px 15px rgba(129,96,238,0.2), inset 0 1px 0 rgba(255,255,255,0.05)"
+                            : "0 1px 3px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.03)",
                       }}
                     >
                       <span className="text-xs text-gray-700 dark:text-gray-300 font-medium truncate mr-3">
@@ -357,7 +403,8 @@ const ReelsPage = () => {
                           onClick={() => handleBuySell(idx, "buy")}
                           className="reel-buy-btn flex-1 bg-emerald-500 text-white text-[13px] font-bold py-2 rounded-xl"
                           style={{
-                            boxShadow: "0 3px 10px rgba(16,185,129,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
+                            boxShadow:
+                              "0 3px 10px rgba(16,185,129,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
                           }}
                         >
                           Buy {Math.round(opt.price * 100)}¢
@@ -366,7 +413,8 @@ const ReelsPage = () => {
                           onClick={() => handleBuySell(idx, "sell")}
                           className="reel-sell-btn flex-1 bg-red-500 text-white text-[13px] font-bold py-2 rounded-xl"
                           style={{
-                            boxShadow: "0 3px 10px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
+                            boxShadow:
+                              "0 3px 10px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
                           }}
                         >
                           Sell {Math.round(opt.price * 100)}¢
@@ -383,7 +431,8 @@ const ReelsPage = () => {
               className="reel-predict-btn relative w-full text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 text-xs overflow-hidden"
               style={{
                 background: "linear-gradient(135deg, #8160EE 0%, #6235f8 100%)",
-                boxShadow: "0 6px 20px rgba(129,96,238,0.4), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.1)",
+                boxShadow:
+                  "0 6px 20px rgba(129,96,238,0.4), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.1)",
               }}
             >
               Predict Now
@@ -393,17 +442,24 @@ const ReelsPage = () => {
           <div
             className="rounded-2xl border border-gray-700/30 p-5 text-center flex-shrink-0"
             style={{
-              background: "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05)",
+              background:
+                "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+              boxShadow:
+                "0 4px 20px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.05)",
             }}
           >
-            <div className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center mx-auto mb-3"
+            <div
+              className="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center mx-auto mb-3"
               style={{ boxShadow: "0 6px 18px rgba(0,0,0,0.3)" }}
             >
               <MdQuiz className="text-gray-600 text-xl" />
             </div>
-            <p className="text-gray-500 text-sm font-medium">No linked market</p>
-            <p className="text-gray-600 text-xs mt-1">This reel isn&apos;t linked to a prediction market</p>
+            <p className="text-gray-500 text-sm font-medium">
+              No linked market
+            </p>
+            <p className="text-gray-600 text-xs mt-1">
+              This reel isn&apos;t linked to a prediction market
+            </p>
           </div>
         )}
 
@@ -414,9 +470,17 @@ const ReelsPage = () => {
           </h4>
           <div className="space-y-2 overflow-y-auto scrollbar-hide flex-1">
             {reels
-              .filter((r) => r.linkedQuestion && r.linkedQuestion.id !== currentReel?.linkedQuestion?.id)
+              .filter(
+                (r) =>
+                  r.linkedQuestion &&
+                  r.linkedQuestion.id !== currentReel?.linkedQuestion?.id,
+              )
               .reduce((acc: LinkedQuestion[], r) => {
-                if (r.linkedQuestion && !acc.find((q) => q.id === r.linkedQuestion!.id)) acc.push(r.linkedQuestion);
+                if (
+                  r.linkedQuestion &&
+                  !acc.find((q) => q.id === r.linkedQuestion!.id)
+                )
+                  acc.push(r.linkedQuestion);
                 return acc;
               }, [])
               .slice(0, 10)
@@ -426,21 +490,27 @@ const ReelsPage = () => {
                   onClick={() => router.push(`/market/${q.id}`)}
                   className="reel-market-card w-full bg-white dark:bg-[#1a1f2e] rounded-xl border border-gray-200 dark:border-gray-700/50 p-3 text-left transition-all duration-200"
                   style={{
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    boxShadow:
+                      "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.05)",
                   }}
                 >
                   <p className="text-xs font-medium text-gray-900 dark:text-white line-clamp-2 leading-snug">
                     {q.question}
                   </p>
                   <p className="text-[11px] text-[#8160EE] mt-1 font-medium">
-                    {q.status === "active" || q.status === "OPEN" ? "Active" : q.status}
-                    {q.endDate && ` · Ends ${new Date(q.endDate).toLocaleDateString()}`}
+                    {q.status === "active" || q.status === "OPEN"
+                      ? "Active"
+                      : q.status}
+                    {q.endDate &&
+                      ` · Ends ${new Date(q.endDate).toLocaleDateString()}`}
                   </p>
                 </button>
               ))}
 
             {reels.filter((r) => r.linkedQuestion).length === 0 && (
-              <p className="text-gray-600 text-xs px-1">No markets available yet</p>
+              <p className="text-gray-600 text-xs px-1">
+                No markets available yet
+              </p>
             )}
           </div>
         </div>
@@ -464,34 +534,58 @@ const ReelsPage = () => {
           ) : (
             <FaRegHeart className="text-gray-500 dark:text-gray-400 text-[22px]" />
           )}
-          <span className="text-[11px] mt-1.5 font-medium text-gray-600 dark:text-gray-400">{formatCount(currentReel.likeCount)}</span>
+          <span className="text-[11px] mt-1.5 font-medium text-gray-600 dark:text-gray-400">
+            {formatCount(currentReel.likeCount)}
+          </span>
         </button>
 
         {/* Comment */}
-        <button onClick={() => handleOpenComments(currentReel.id)} className="reel-action-btn flex flex-col items-center">
-          <FaComment className={`text-[22px] ${commentsOpen ? "text-[#8160EE]" : "text-gray-500 dark:text-gray-400"}`} />
-          <span className="text-[11px] mt-1.5 font-medium text-gray-600 dark:text-gray-400">{formatCount(currentReel.commentCount)}</span>
+        <button
+          onClick={() => handleOpenComments(currentReel.id)}
+          className="reel-action-btn flex flex-col items-center"
+        >
+          <FaComment
+            className={`text-[22px] ${commentsOpen ? "text-[#8160EE]" : "text-gray-500 dark:text-gray-400"}`}
+          />
+          <span className="text-[11px] mt-1.5 font-medium text-gray-600 dark:text-gray-400">
+            {formatCount(currentReel.commentCount)}
+          </span>
         </button>
 
         {/* Bookmark */}
-        <button onClick={handleDesktopBookmark} className="reel-action-btn flex flex-col items-center">
+        <button
+          onClick={handleDesktopBookmark}
+          className="reel-action-btn flex flex-col items-center"
+        >
           {currentReel.isBookmarked ? (
             <FaBookmark className="text-[#8160EE] text-[22px]" />
           ) : (
             <FaRegBookmark className="text-gray-500 dark:text-gray-400 text-[22px]" />
           )}
-          <span className="text-[11px] mt-1.5 font-medium text-gray-600 dark:text-gray-400">{formatCount(currentReel.bookmarkCount)}</span>
+          <span className="text-[11px] mt-1.5 font-medium text-gray-600 dark:text-gray-400">
+            {formatCount(currentReel.bookmarkCount)}
+          </span>
         </button>
 
         {/* Share */}
-        <button onClick={handleDesktopShare} className="reel-action-btn flex flex-col items-center">
+        <button
+          onClick={handleDesktopShare}
+          className="reel-action-btn flex flex-col items-center"
+        >
           <FaShare className="text-gray-500 dark:text-gray-400 text-[20px]" />
           <span className="text-[11px] mt-1.5 text-gray-500">Share</span>
         </button>
 
         {/* Mute */}
-        <button onClick={() => setIsMuted((prev) => !prev)} className="reel-action-btn flex flex-col items-center">
-          {isMuted ? <FaVolumeMute className="text-gray-500 dark:text-gray-400 text-[20px]" /> : <FaVolumeUp className="text-gray-500 dark:text-gray-400 text-[20px]" />}
+        <button
+          onClick={() => setIsMuted((prev) => !prev)}
+          className="reel-action-btn flex flex-col items-center"
+        >
+          {isMuted ? (
+            <FaVolumeMute className="text-gray-500 dark:text-gray-400 text-[20px]" />
+          ) : (
+            <FaVolumeUp className="text-gray-500 dark:text-gray-400 text-[20px]" />
+          )}
         </button>
 
         {/* Create */}
@@ -502,7 +596,8 @@ const ReelsPage = () => {
             title="Create Reel"
             style={{
               background: "linear-gradient(135deg, #9070fa 0%, #6235f8 100%)",
-              boxShadow: "0 6px 20px rgba(129,96,238,0.4), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15)",
+              boxShadow:
+                "0 6px 20px rgba(129,96,238,0.4), 0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15)",
             }}
           >
             <FaPlus className="text-white text-sm" />
@@ -625,7 +720,8 @@ const ReelsPage = () => {
         <div
           className="relative w-[380px] flex-shrink-0 h-[calc(100%-32px)] max-h-[780px] bg-black rounded-2xl overflow-hidden"
           style={{
-            boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 20px 60px rgba(0,0,0,0.4), 0 0 15px rgba(129,96,238,0.1)",
+            boxShadow:
+              "0 0 0 1px rgba(255,255,255,0.06), 0 20px 60px rgba(0,0,0,0.4), 0 0 15px rgba(129,96,238,0.1)",
           }}
         >
           <div
@@ -634,8 +730,20 @@ const ReelsPage = () => {
             style={{ scrollSnapStop: "always" } as React.CSSProperties}
           >
             {reels.map((reel, idx) => (
-              <div key={reel.id} data-index={idx} className="w-full h-full snap-start" style={{ scrollSnapStop: "always" } as React.CSSProperties}>
-                <ReelCard reel={reel} isActive={idx === currentIndex} isMuted={isMuted} onToggleMute={() => setIsMuted((prev) => !prev)} onOpenComments={handleOpenComments} isAuth={isAuth} />
+              <div
+                key={reel.id}
+                data-index={idx}
+                className="w-full h-full snap-start"
+                style={{ scrollSnapStop: "always" } as React.CSSProperties}
+              >
+                <ReelCard
+                  reel={reel}
+                  isActive={idx === currentIndex}
+                  isMuted={isMuted}
+                  onToggleMute={() => setIsMuted((prev) => !prev)}
+                  onOpenComments={handleOpenComments}
+                  isAuth={isAuth}
+                />
               </div>
             ))}
 
@@ -643,14 +751,17 @@ const ReelsPage = () => {
               <div className="w-full h-full snap-start flex items-center justify-center bg-black">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-10 border-3 border-[#8160EE] border-t-transparent rounded-full animate-spin" />
-                  <span className="text-gray-400 text-sm">Loading reels...</span>
+                  <span className="text-gray-400 text-sm">
+                    Loading reels...
+                  </span>
                 </div>
               </div>
             )}
 
             {!isLoading && reels.length === 0 && (
               <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-black via-[#0f172a] to-black text-white px-6">
-                <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#8160EE]/20 to-[#8160EE]/5 flex items-center justify-center mb-6"
+                <div
+                  className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#8160EE]/20 to-[#8160EE]/5 flex items-center justify-center mb-6"
                   style={{ boxShadow: "0 10px 30px rgba(129,96,238,0.2)" }}
                 >
                   <FaVideo className="text-[#8160EE] text-3xl" />
@@ -670,7 +781,12 @@ const ReelsPage = () => {
 
         {commentsOpen && (
           <div className="w-[340px] flex-shrink-0 h-[calc(100%-32px)] max-h-[780px]">
-            <CommentsDrawer reelId={commentsReelId} isOpen={commentsOpen} onClose={() => setCommentsOpen(false)} sidePanel />
+            <CommentsDrawer
+              reelId={commentsReelId}
+              isOpen={commentsOpen}
+              onClose={() => setCommentsOpen(false)}
+              sidePanel
+            />
           </div>
         )}
       </div>
@@ -678,10 +794,26 @@ const ReelsPage = () => {
       {/* MOBILE LAYOUT */}
       <div className="flex lg:hidden w-full h-full bg-black">
         <div className="relative w-full h-full max-w-[420px] mx-auto bg-black">
-          <div ref={mobileContainerRef} className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide" style={{ scrollSnapStop: "always" } as React.CSSProperties}>
+          <div
+            ref={mobileContainerRef}
+            className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+            style={{ scrollSnapStop: "always" } as React.CSSProperties}
+          >
             {reels.map((reel, idx) => (
-              <div key={reel.id} data-index={idx} className="w-full h-full snap-start" style={{ scrollSnapStop: "always" } as React.CSSProperties}>
-                <ReelCard reel={reel} isActive={idx === currentIndex} isMuted={isMuted} onToggleMute={() => setIsMuted((prev) => !prev)} onOpenComments={handleOpenComments} isAuth={isAuth} />
+              <div
+                key={reel.id}
+                data-index={idx}
+                className="w-full h-full snap-start"
+                style={{ scrollSnapStop: "always" } as React.CSSProperties}
+              >
+                <ReelCard
+                  reel={reel}
+                  isActive={idx === currentIndex}
+                  isMuted={isMuted}
+                  onToggleMute={() => setIsMuted((prev) => !prev)}
+                  onOpenComments={handleOpenComments}
+                  isAuth={isAuth}
+                />
               </div>
             ))}
 
@@ -689,7 +821,9 @@ const ReelsPage = () => {
               <div className="w-full h-full snap-start flex items-center justify-center bg-black">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-10 border-3 border-[#8160EE] border-t-transparent rounded-full animate-spin" />
-                  <span className="text-gray-400 text-sm">Loading reels...</span>
+                  <span className="text-gray-400 text-sm">
+                    Loading reels...
+                  </span>
                 </div>
               </div>
             )}
@@ -700,11 +834,19 @@ const ReelsPage = () => {
                   <FaVideo className="text-[#8160EE] text-3xl" />
                 </div>
                 <p className="text-xl font-bold mb-2">No reels yet</p>
-                <p className="text-gray-400 text-sm text-center max-w-[280px] leading-relaxed">Be the first to share your market insights!</p>
+                <p className="text-gray-400 text-sm text-center max-w-[280px] leading-relaxed">
+                  Be the first to share your market insights!
+                </p>
                 {isAuth && (
-                  <button onClick={() => setCreateOpen(true)}
+                  <button
+                    onClick={() => setCreateOpen(true)}
                     className="reel-predict-btn relative mt-6 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 overflow-hidden"
-                    style={{ background: "linear-gradient(135deg, #8160EE 0%, #6235f8 100%)", boxShadow: "0 6px 20px rgba(129,96,238,0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.1)" }}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #8160EE 0%, #6235f8 100%)",
+                      boxShadow:
+                        "0 6px 20px rgba(129,96,238,0.4), inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.1)",
+                    }}
                   >
                     <FaPlus className="text-sm" />
                     Create First Reel
@@ -715,22 +857,50 @@ const ReelsPage = () => {
           </div>
 
           {isAuth && reels.length > 0 && (
-            <button onClick={() => setCreateOpen(true)}
+            <button
+              onClick={() => setCreateOpen(true)}
               className="reel-create-btn absolute bottom-6 right-4 z-30 rounded-full flex items-center justify-center"
               title="Create Reel"
-              style={{ width: "52px", height: "52px", background: "linear-gradient(135deg, #9070fa 0%, #6235f8 100%)", boxShadow: "0 8px 24px rgba(129,96,238,0.4), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15)" }}
+              style={{
+                width: "52px",
+                height: "52px",
+                background: "linear-gradient(135deg, #9070fa 0%, #6235f8 100%)",
+                boxShadow:
+                  "0 8px 24px rgba(129,96,238,0.4), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15)",
+              }}
             >
               <FaPlus className="text-white text-base" />
             </button>
           )}
         </div>
 
-        <CommentsDrawer reelId={commentsReelId} isOpen={commentsOpen} onClose={() => setCommentsOpen(false)} />
+        <CommentsDrawer
+          reelId={commentsReelId}
+          isOpen={commentsOpen}
+          onClose={() => setCommentsOpen(false)}
+        />
       </div>
 
-      <CreateReelModal isOpen={createOpen} onClose={() => setCreateOpen(false)} onCreated={handleReelCreated} />
-      <BuySell isOpen={buySellOpen} onClose={() => setBuySellOpen(false)} rowDetailss={buySellRowDetails} orderType={buySellOrderType} handleChangeOrderType={setBuySellOrderType} option={buySellOption} optionIndex={selectedOptionIndex ?? 0} fetchOrders={() => {}} />
-      <Authentication isLogin isOpen={loginOpen} handleClose={() => setLoginOpen(false)} />
+      <CreateReelModal
+        isOpen={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={handleReelCreated}
+      />
+      <BuySell
+        isOpen={buySellOpen}
+        onClose={() => setBuySellOpen(false)}
+        rowDetailss={buySellRowDetails}
+        orderType={buySellOrderType}
+        handleChangeOrderType={setBuySellOrderType}
+        option={buySellOption}
+        optionIndex={selectedOptionIndex ?? 0}
+        fetchOrders={() => {}}
+      />
+      <Authentication
+        isLogin
+        isOpen={loginOpen}
+        handleClose={() => setLoginOpen(false)}
+      />
     </div>
   );
 };
