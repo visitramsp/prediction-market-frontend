@@ -1,12 +1,36 @@
 import { fetchCategoryWithQuestions } from "@/components/service/apiService/user";
+import {
+  changeIsEvent,
+  saveCategory,
+  saveSelectSubCategory,
+} from "@/components/store/slice/category";
+import { truncateValue } from "@/utils/Content";
 import moment from "moment";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { FaBookmark, FaLink, FaRegBookmark } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { HiArrowTrendingUp } from "react-icons/hi2";
+const getShortName = (name = "") => {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 3); // max 3 letters
+};
 
+const getLocationLabel = (country, state, city) => {
+  // if (city?.name) return getShortName(city.name);
+  if (state?.name) return getShortName(state.name);
+  if (country?.name) return "DOM"; // Domestic short form
+  return "";
+};
 // ─── Mini SVG Sparkline ─────────────────────────────────────
 const MiniChart = ({ color, points }) => {
   const w = 50,
-    h = 30;
+    h = 20;
 
   const xs = points.map((_, i) => (i / (points.length - 1)) * w);
   const min = Math.min(...points);
@@ -33,17 +57,25 @@ const MiniChart = ({ color, points }) => {
 };
 
 const noPoints = [50, 52, 55, 53, 57, 60, 62, 65, 63, 68, 70, 72];
-const yesPoints = [50, 48, 45, 47, 43, 40, 38, 35, 37, 32, 30, 28];
+const yesPoints = [50, 48, 45, 47, 43, 40, 38, 35, 37, 32, 30, 65];
 
 // ─── Card ─────────────────────────────────────
-const PredictionCard = ({ card, handleRedirect }) => {
+const PredictionCard = ({
+  card,
+  handleRedirect,
+  handleCopyMarketLink,
+  getToken,
+  setIsOpen,
+}) => {
   const [hovered, setHovered] = useState(false);
+
+  console.log(card, "card");
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative overflow-hidden rounded-2xl p-5  cursor-pointer transition-all duration-300 
+      className={`relative rounded-2xl p-5  cursor-pointer transition-all duration-300 
       ${
         hovered
           ? "border border-indigo-400/40 shadow-[0_0_0_1px_rgba(129,140,248,0.15),0_8px_40px_rgba(129,140,248,0.15)] -translate-y-1"
@@ -59,6 +91,12 @@ const PredictionCard = ({ card, handleRedirect }) => {
             "radial-gradient(ellipse at 50% 0%, rgba(129,140,248,0.08) 0%, transparent 65%)",
         }}
       />
+      {getLocationLabel(card?.country, card?.state, card?.city) && (
+        <div className="absolute -top-2.5 flex items-center gap-0.5  font-normal right-2  bg-green-400/20 px-1 py-0.5 text-xs z-[50]  text-green-300 rounded">
+          <HiArrowTrendingUp />{" "}
+          {getLocationLabel(card?.country, card?.state, card?.city)}
+        </div>
+      )}
       <div className="flex gap-3 mb-4">
         <img
           src={
@@ -67,60 +105,104 @@ const PredictionCard = ({ card, handleRedirect }) => {
           alt=""
           className="w-11 h-11 rounded-lg object-cover shrink-0"
         />
-        <p className="text-slate-200 text-sm font-semibold leading-6">
+        <p
+          onClick={() => handleRedirect(card)}
+          className="text-slate-200 text-sm font-semibold leading-6"
+        >
           {card.question || "--"}
         </p>
       </div>
       <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-4">
         <span>
           Resolves{" "}
-          {card?.endDate ? moment(card.endDate).format("MMM YYYY") : ""}
+          {card?.end_date ? moment(card.end_date).format("MMM YYYY") : ""}
         </span>
         <span>·</span>
-        <span className="text-violet-400">
-          {card?.stats?.totalVolume || "0"}
+        <span className="text-gray-400">
+          <span className="text-purple-500">$ </span>{" "}
+          {truncateValue(card?.stats?.totalVolume, 0) || "0"} Val
         </span>
-        <span className="ml-auto">{card?.options?.length || 0} mrkts</span>
+        <span className="ml-auto">{card?.series?.length || 0} mrkts</span>
+        <FaLink onClick={() => handleCopyMarketLink(card?.id)} />
+        <span
+          className="cursor-pointer inline-flex
+                     transition-transform duration-200 ease-in-out
+                     hover:scale-125"
+        >
+          {!card?.isBookmark ? (
+            <FaRegBookmark
+              onClick={
+                () => (!getToken ? setIsOpen(true) : null)
+                // : bookMarkUnBookMark(row?.id, row)
+              }
+              className="text-gray-600"
+            />
+          ) : (
+            <FaBookmark
+              onClick={() => (!getToken ? setIsOpen(true) : null)}
+              className="text-purple-400"
+            />
+          )}
+        </span>
       </div>
 
       <div className="h-px bg-white/5 mb-4" />
 
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-[50%] flex items-center">
-          <span className="text-gray-400 text-xs w-7 shrink-0">No</span>
-          <MiniChart color="#22c55e" points={noPoints} />
-        </div>
-        <span className="ml-auto text-green-500 font-bold text-[15px]">
-          {33}%
-        </span>
-      </div>
+      {card?.series
+        ?.filter((_, fitInd) => fitInd === 0 || fitInd === 1)
+        .map((item, ind) => {
+          const result = item?.data.map((item) => item.price * 100);
 
-      <div className="flex items-center gap-2">
-        <div className="w-[50%] flex items-center">
-          <span className="text-gray-400 text-xs w-7 shrink-0">Yes</span>
-          <div className="overflow-hidden transition-all duration-300 w-[50px] opacity-100">
-            <MiniChart color="#3b82f6" points={yesPoints} />
-          </div>
-        </div>
+          console.log(result, "result");
 
-        <div className="w-[50%] flex items-center justify-between">
-          <div
-            className={`flex w-fit justify-start relative -left-14 transition-all duration-300 ${
-              hovered
-                ? "opacity-100 translate-y-0 scale-100"
-                : "opacity-0 translate-y-2 scale-95"
-            }`}
+          return (
+            <div className="">
+              {ind == 0 ? (
+                <div className="flex items-center gap-2 w-full mb-3">
+                  <div className="text-gray-400 text-xs w-[40%] truncate">
+                    {item?.name || ""}
+                  </div>
+                  <div className="w-[60%] flex items-center">
+                    <MiniChart color="#22c55e" points={result} />
+                    <span className="ml-auto text-green-500 font-bold text-[15px]">
+                      {truncateValue(item?.price * 100, 0)}%
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-gray-400 text-xs w-[40%]">
+                    {item?.name || ""}
+                  </div>
+                  <div className="w-[60%] flex items-center justify-between">
+                    <div className="overflow-hidden transition-all duration-300 w-[50px] opacity-100">
+                      <MiniChart color="#3b82f6" points={result} />
+                    </div>
+                    <div className="text-blue-400 font-bold text-[15px]">
+                      {truncateValue(item?.price * 100, 0)}%
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      {/* <div className="w-full z-50  flex items-center justify-center">
+        <div
+          className={`flex w-fit justify-start transition-all duration-300 ease-in-out overflow-hidden ${
+            hovered
+              ? "opacity-100 translate-y-0 scale-100 max-h-20"
+              : "opacity-0 translate-y-2 scale-95 max-h-0"
+          }`}
+        >
+          <button
+            onClick={() => handleRedirect(card)}
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-indigo-400 to-indigo-600 text-white text-xs font-bold tracking-wider shadow-lg"
           >
-            <button
-              onClick={() => handleRedirect(card)}
-              className="px-6 py-2 rounded-xl bg-gradient-to-r from-indigo-400 to-indigo-600 text-white text-xs font-bold tracking-wider shadow-lg"
-            >
-              TRADE NOW
-            </button>
-          </div>
-          <span className="text-blue-400 font-bold text-[15px]">{66}%</span>
+            TRADE NOW
+          </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
@@ -159,11 +241,30 @@ const ArrowBtn = ({ direction, onClick, disabled, classNames }) => {
 };
 
 // ─── Category Row (independent scroll state per row) ─────────────────────────
-const CategoryRow = ({ row, handleRedirect }) => {
+const CategoryRow = ({ row, handleRedirect, getToken, setIsOpen }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const VISIBLE = 3;
   const maxIndex = Math.max(0, (row?.questions?.length || 0) - VISIBLE);
 
+  const handleCopyMarketLink = async (id) => {
+    try {
+      const linkOfRef = `http://localhost:3000/market/${id}`;
+      await navigator.clipboard.writeText(linkOfRef);
+      toast.success("Question link copied!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to copy questions link");
+    }
+  };
+
+  const dispatch = useDispatch();
+  const viewAllQuestions = (items) => {
+    console.log(items, "items");
+
+    dispatch(saveCategory(items));
+    dispatch(saveSelectSubCategory(null));
+    dispatch(changeIsEvent(false));
+  };
   return (
     <div className="py-6 font-sans">
       {/* Header */}
@@ -177,7 +278,10 @@ const CategoryRow = ({ row, handleRedirect }) => {
             {row?.total_questions || 0}
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div
+          onClick={() => viewAllQuestions(row)}
+          className="flex items-center gap-3"
+        >
           <a
             href="#"
             className="text-indigo-400 text-sm flex items-center gap-1 ml-2"
@@ -203,6 +307,9 @@ const CategoryRow = ({ row, handleRedirect }) => {
                 key={i}
                 card={card}
                 handleRedirect={handleRedirect}
+                handleCopyMarketLink={handleCopyMarketLink}
+                getToken={getToken}
+                setIsOpen={setIsOpen}
               />
             ))}
         </div>
@@ -218,7 +325,7 @@ const CategoryRow = ({ row, handleRedirect }) => {
 };
 
 // ─── Main ─────────────────────────────────────
-export default function CardSection() {
+export default function CardSection({ getToken, setIsOpen }) {
   const [questionData, setQuestionData] = useState([]);
   const router = useRouter();
   const getFilterQuestion = useCallback(async () => {
@@ -248,6 +355,8 @@ export default function CardSection() {
             key={row?.id || index}
             row={row}
             handleRedirect={handleRedirect}
+            getToken={getToken}
+            setIsOpen={setIsOpen}
           />
         ))}
     </>

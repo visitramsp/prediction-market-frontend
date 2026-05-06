@@ -154,7 +154,7 @@ const StackedAreaChart = ({
   return (
     <div ref={containerRef} className="w-full flex flex-col relative sm:mx-0">
       {/* Filters Area */}
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between mb-2">
         <div onClick={handleFullscreen}>
           <AiOutlineFullscreen />
         </div>

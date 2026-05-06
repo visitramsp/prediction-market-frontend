@@ -6,13 +6,15 @@ import StackedAreaChart from "../../detail/component/realTimeChart";
 import { fetchTopTenQuestions } from "@/components/service/apiService/user";
 import moment from "moment";
 import { truncateValue } from "@/utils/Content";
+import toast from "react-hot-toast";
+import { FaBookmark, FaLink, FaRegBookmark } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 let accent = "#34d399";
 let accent2 = "#60a5fa";
 
 const SLIDE_DURATION = 5000;
 
-// ─── Animated Bar ────────────────────────────────────────────────────────────
 function AnimatedBar({ value, color, trigger }) {
   const [width, setWidth] = useState(0);
 
@@ -36,13 +38,182 @@ function AnimatedBar({ value, color, trigger }) {
   );
 }
 
-// ─── MAIN ───────────────────────────────────────────────────────────────────
+const ButtonComponent = ({ slide, setPrice }) => {
+  const [topSelected, setTopSelected] = useState(0);
+  const [bottomSelected, setBottomSelected] = useState(0); // 0 = YES, 1 = NO
+
+  const yesColor = "#22c55e"; // green
+  const noColor = "#ef4444"; // red
+
+  const activeColor = bottomSelected === 0 ? "#0CAC78" : noColor;
+  const [value, setValue] = useState(28);
+  const sliderRef = useRef(null);
+  const BASE = {
+    contracts: 28,
+    cost: 4.74,
+    fee: 0.09,
+    profit: 23.26,
+    max: 100,
+  };
+  const ratio = value / BASE.contracts;
+  const cost = (BASE.cost * ratio).toFixed(2);
+  const fee = (BASE.fee * ratio).toFixed(2);
+  const profit = (BASE.profit * ratio).toFixed(2);
+  const pct = (value / BASE.max) * 100;
+
+  const handleChange = useCallback((e) => {
+    setValue(Number(e.target.value));
+  }, []);
+
+  const disableColor = value <= 10 ? true : false;
+
+  useEffect(() => {
+    setPrice(value);
+  }, [value]);
+  return (
+    <div className="w-full space-y-3">
+      {/* ───────── TOP SECTION ───────── */}
+      <div className="flex gap-3">
+        {slide?.series?.map((item, i) => {
+          const isActive = topSelected === i;
+
+          return (
+            <button
+              key={i}
+              onClick={() => setTopSelected(i)}
+              className="px-4 text-nowrap py-2 rounded-xl text-xs font-semibold border transition-all duration-200"
+              style={{
+                color: yesColor,
+                borderColor: yesColor,
+                background: isActive ? yesColor + "22" : "transparent",
+              }}
+            >
+              {item?.name} - {truncateValue(item?.price * 100, 1)}%
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex gap-3 w-full">
+        <button
+          onClick={() => setBottomSelected(0)}
+          className="flex-1 py-2 rounded-xl border text-xs font-bold uppercase transition-all"
+          style={{
+            color: "#0CAC78",
+            borderColor: "#0CAC78",
+            background: bottomSelected === 0 ? "#0CAC78" + "22" : "transparent",
+          }}
+        >
+          YES
+        </button>
+
+        <button
+          onClick={() => setBottomSelected(1)}
+          className="flex-1 py-2 rounded-xl border text-xs font-bold uppercase transition-all"
+          style={{
+            color: noColor,
+            borderColor: noColor,
+            background: bottomSelected === 1 ? noColor + "22" : "transparent",
+          }}
+        >
+          NO
+        </button>
+      </div>
+
+      <div className="rounded-lg w-full max-w-2xl font-sans select-none">
+        {/* Top row: label + slider + max */}
+        <div className="flex justify-between items-center">
+          <span className="text-[#888] text-[13px] whitespace-nowrap">
+            {value} contracts
+          </span>
+          <span className="text-[#555] text-[13px] whitespace-nowrap">
+            {BASE.max} max
+          </span>
+        </div>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="relative flex-1 h-8 flex items-center">
+            {/* Track */}
+            <div className="absolute inset-x-0 h-[25px] border border-[#333]/50 bg-[#333]/30 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-none"
+                style={{
+                  width: `${pct}%`,
+                  background: activeColor + "40",
+                }}
+              />
+            </div>
+
+            {/* Knob */}
+            <div
+              className="absolute z-10 h-6 w-6 flex items-center justify-center 
+                 px-2 py-[2px] rounded-full text-[8px] font-semibold 
+                 text-white shadow-lg backdrop-blur-md border border-white/10"
+              style={{
+                // Improved positioning - stays inside track
+                left: `clamp(2px, calc(${pct}% - 12px), calc(100% - 24px))`,
+                background: `linear-gradient(135deg, ${disableColor ? "#333" : activeColor}, ${disableColor ? "#333" : activeColor}aa)`,
+                boxShadow: `0 4px 12px ${disableColor ? "#333" : activeColor}40`,
+              }}
+            >
+              {value}
+            </div>
+
+            {/* Range Input */}
+            <input
+              ref={sliderRef}
+              type="range"
+              min={0}
+              max={BASE.max}
+              step={1}
+              value={value}
+              onChange={handleChange}
+              className="absolute inset-x-0 w-full h-8 opacity-0 cursor-pointer z-20"
+            />
+          </div>
+        </div>
+        {/* Bottom row: cost/fee + profit */}
+        {value > 0 && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-[#ccc] text-[13px]">
+                Cost <span className="text-white font-medium">${cost}</span>
+              </span>
+              <span className="text-[#555] text-[13px]">
+                Fee <span className="text-[#888]">${fee}</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[#22c55e] text-[13px] font-medium">
+                +${profit}
+              </span>
+              <span className="text-[#555] text-[13px]">$0.00</span>
+            </div>
+          </div>
+        )}
+      </div>
+      {value > 0 && (
+        <button
+          className="w-full py-2 rounded-lg font-bold tracking-wider transition-all"
+          style={{
+            color: activeColor,
+            border: `1px solid ${activeColor}`,
+            background: activeColor + "20",
+          }}
+        >
+          {bottomSelected == 0 ? "Buy" : "Sell"}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export default function HeroSection() {
   const [questionData, setQuestionData] = useState<any>({});
   const [current, setCurrent] = useState(0);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const [animKey, setAnimKey] = useState(0);
+  const [price, setPrice] = useState(0);
 
   const progressRef = useRef<any>(null);
   const startTimeRef = useRef<number | null>(null);
@@ -139,6 +310,21 @@ export default function HeroSection() {
   };
 
   console.log(slide, "slide");
+  const router = useRouter();
+  const handleCopyMarketLink = async (id) => {
+    try {
+      const linkOfRef = `http://localhost:3000/market/${id}`;
+      await navigator.clipboard.writeText(linkOfRef);
+      toast.success("🔗 Link Copied Successfully!");
+    } catch (error) {
+      toast.error("❌ Failed to copy link");
+    }
+  };
+  const handleRedirectMarket = () => {
+    router.push(`markets/${slide?.questionId}`);
+  };
+
+  console.log(price, "price");
 
   return (
     <div className="flex flex-col items-center justify-center font-mono">
@@ -149,7 +335,7 @@ export default function HeroSection() {
         className="w-full bg-[#090912]/40 border border-[var(--color-borderlight)]
                         dark:border-[var(--color-borderdark)] rounded-2xl overflow-hidden"
       >
-        <div key={animKey} className="flex relative flex-wrap h-[500px]">
+        <div key={animKey} className="flex relative flex-wrap ">
           {/* PROGRESS BAR */}
           <div
             className="h-[1px] absolute bottom-0"
@@ -161,32 +347,39 @@ export default function HeroSection() {
           />
 
           {/* LEFT */}
-          <div className="flex-1 min-w-[260px] p-6 flex flex-col gap-4 border-r border-[var(--color-borderlight)] dark:border-[var(--color-borderdark)]">
-            {/* TAGS */}
-            <div className="flex items-center gap-2 justify-between">
+          <div
+            className="flex-1 min-w-[280px] p-6 flex flex-col gap-5 
+  border-r border-white/10 "
+          >
+            {/* HEADER */}
+            <div className="flex items-center justify-between">
+              {/* TAGS */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span
-                  className="text-[10px] font-bold tracking-wider px-2 py-[2px] rounded"
+                  className="text-[10px] font-semibold tracking-widest px-3 py-[4px] rounded-full 
+        border border-white/10 backdrop-blur-md"
                   style={{
-                    color: accent,
-                    background: accent + "18",
+                    color: "white",
                   }}
                 >
                   {slide?.category_name}
                 </span>
 
-                {/* <span className="text-white/20 text-xs">●</span>
+                <span className="w-1 h-1 rounded-full bg-white/30" />
 
-                <span className="text-[10px] px-2 py-[2px] rounded bg-white/10 text-white/50">
-                  {slide?.sub}
-                </span> */}
+                <span
+                  className="text-[10px] px-3 py-[4px] rounded-full 
+        bg-green-500/10 text-green-400 border border-green-500/20"
+                >
+                  ● Live
+                </span>
               </div>
 
               {/* NAV */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={handlePrev}
-                  className="w-7 h-7 bg-white/10 rounded"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition"
                 >
                   ‹
                 </button>
@@ -197,7 +390,7 @@ export default function HeroSection() {
 
                 <button
                   onClick={handleNext}
-                  className="w-7 h-7 bg-white/10 rounded"
+                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 transition"
                 >
                   ›
                 </button>
@@ -205,42 +398,82 @@ export default function HeroSection() {
             </div>
 
             {/* QUESTION */}
-            <h2 className="text-white text-lg font-bold leading-snug">
+            <h2
+              onClick={handleRedirectMarket}
+              className="text-white text-xl cursor-pointer font-semibold leading-snug tracking-tight"
+            >
               {slide?.question}
             </h2>
 
-            <div className="text-xs text-white/40">
-              Resolves {slide?.resolves} •{" "}
-              <span className="text-yellow-400 font-bold ml-1">
+            {/* META */}
+            <div className="flex items-center gap-3 text-xs text-white/40">
+              <span>Resolves {slide?.resolves}</span>
+              <span className="text-yellow-400 font-medium">
                 ⏱ {slide?.date ? moment(slide.date).format("MMM YYYY") : ""}
               </span>
             </div>
 
             {/* SERIES */}
-            <div>
+            <div className="flex flex-col gap-4 mt-1">
               {(slide?.series || []).map((label, i) => {
                 const val = (label?.price || 0) * 100;
                 const color = i === 0 ? accent2 : accent;
 
                 return (
-                  <div key={i} className="mb-3">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-white">{label?.name}</span>
-                      <span style={{ color }} className="font-bold">
+                  <div key={i} className="group">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-white/90 font-medium">
+                        {label?.name}
+                      </span>
+
+                      <span className="font-bold text-sm" style={{ color }}>
                         {truncateValue(val, 1)}%
                       </span>
                     </div>
 
-                    <AnimatedBar value={val} color={color} trigger={animKey} />
+                    <div className="relative">
+                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{
+                            width: `${val}%`,
+                            background: `linear-gradient(90deg, ${color}, ${color}99)`,
+                            boxShadow: `0 0 12px ${color}40`,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
             {/* FOOTER */}
-            <div className="flex justify-between text-sm text-white/50 border-t border-white/10 pt-3 mt-auto">
-              <span>${slide?.total_cost || "0"} Vol</span>
-              <span>{slide?.series?.length || "0"} markets</span>
+            <div className="flex items-center justify-between pt-4 mt-auto border-t border-white/10">
+              <div className="text-sm text-white/60">
+                <span className="text-purple-400">$</span>{" "}
+                {Math.floor(slide?.total_cost || 0) || "0"}{" "}
+                <span className="text-white/40">Vol</span>
+              </div>
+
+              <div className="flex items-center gap-4 text-white/60">
+                <span className="text-xs">
+                  {slide?.series?.length || 0} markets
+                </span>
+
+                <FaLink
+                  onClick={() => handleCopyMarketLink(slide?.questionId)}
+                  className="hover:text-blue-400 cursor-pointer transition"
+                />
+
+                <span className="cursor-pointer hover:scale-110 transition">
+                  {!slide?.isBookmark ? (
+                    <FaRegBookmark className="text-white/40 hover:text-purple-400" />
+                  ) : (
+                    <FaBookmark className="text-purple-400" />
+                  )}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -254,35 +487,9 @@ export default function HeroSection() {
               />
             </span>
 
-            <div className="flex items-center justify-between gap-4 w-full">
-              <button
-                className="flex-1 py-2 rounded-lg border font-bold text-xs"
-                style={{
-                  color: accent,
-                  borderColor: accent,
-                  background: accent + "18",
-                }}
-              >
-                {" "}
-                {slide?.series?.[0]?.name}{" "}
-                {truncateValue(slide?.series?.[0]?.price * 100, 1)}%{" "}
-              </button>
+            <ButtonComponent slide={slide} setPrice={setPrice} />
 
-              <button
-                className="flex-1 py-2 rounded-lg border font-bold text-xs"
-                style={{
-                  color: accent2,
-                  borderColor: accent2,
-                  background: accent2 + "18",
-                }}
-              >
-                {" "}
-                {slide?.series?.[1]?.name}{" "}
-                {truncateValue(slide?.series?.[1]?.price * 100, 1)}%{" "}
-              </button>
-            </div>
-
-            <button
+            {/* <button
               className="w-full py-3 rounded-lg font-bold tracking-wider"
               style={{
                 color: accent,
@@ -292,7 +499,7 @@ export default function HeroSection() {
             >
               {" "}
               PLACE BET{" "}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

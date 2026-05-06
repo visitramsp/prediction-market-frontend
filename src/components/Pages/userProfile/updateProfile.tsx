@@ -335,7 +335,7 @@ export default function UpdateProfile({
                   onBlur={formik.handleBlur}
                   className="w-full mt-1 px-4 py-3 rounded-xl border 
                 border-gray-300 dark:border-gray-600 bg-transparent  text-gray-700
-                dark:text-white dark:border-gray-300 border-gray-300 focus:outline-none placeholder:text-gray-400  dark:placeholder:text-gray-200  focus:ring-1"
+                dark:text-white dark:border-gray-300 border-gray-300 focus:outline-none placeholder:text-gray-700  dark:placeholder:text-gray-600  focus:ring-1"
                   placeholder="Enter your name"
                 />
                 {formik.touched.userName && formik.errors.userName && (
@@ -364,10 +364,10 @@ export default function UpdateProfile({
               focus:outline-none
               focus:ring-2 focus:ring-blue-500
 
-              placeholder:text-gray-400
+              placeholder:text-gray-700
               dark:placeholder:text-gray-600
 
-              placeholder:blur-[1.5px]
+             
               focus:placeholder:blur-0
 
               transition-all duration-200 
@@ -392,7 +392,7 @@ export default function UpdateProfile({
                   }
                   className="w-full mt-1 px-4 py-3 rounded-xl border 
                 border-gray-300 dark:border-gray-600 bg-transparent  text-gray-700
-                dark:text-white dark:border-gray-300 border-gray-300 focus:outline-none placeholder:!text-gray-400  dark:placeholder:!text-gray-600  focus:ring-1"
+                dark:text-white dark:border-gray-300 border-gray-300 focus:outline-none placeholder:!text-gray-700  dark:placeholder:!text-gray-600  focus:ring-1"
                   placeholder="Enter"
                 />
               </div>

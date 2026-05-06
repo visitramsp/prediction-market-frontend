@@ -319,7 +319,10 @@ const Home = () => {
             ? null
             : loader
               ? null
-              : categoryDetails?.id == 1 && <CardSection />}
+              : categoryDetails?.id == 1 &&
+                questionListFilter.length > 0 && (
+                  <CardSection getToken={getToken} setIsOpen={setIsOpen} />
+                )}
         </div>
         <div
           className={`grid  grid-cols-1 ${isEvent ? "grid-cols-1" : isSidebarOpen ? "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}  gap-4 pt-10 lg:pt-0`}
